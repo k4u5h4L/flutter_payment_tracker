@@ -94,6 +94,10 @@ class _MyHomePageState extends State<MyHomePage> {
     dateController.clear();
 
     Navigator.of(context).pop();
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString('data', jsonEncode(_db));
   }
 
   @override
@@ -232,6 +236,13 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 });
 
                                                 Navigator.of(context).pop();
+
+                                                SharedPreferences prefs =
+                                                    await SharedPreferences
+                                                        .getInstance();
+
+                                                await prefs.setString(
+                                                    'data', jsonEncode(_db));
                                               },
                                             ),
                                           ],
