@@ -33,28 +33,15 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<dynamic> _db = [];
-
-  /*
-  [
-    {
-      date: '2021 Jan',
-      paul: 'paid',
-      adarsh: 'paid',
-      tanush: 'not paid',
-      ]
-    },
-    ...
-  ]
-  */
-
+  final TextEditingController dateController = TextEditingController();
   @override
   void initState() {
     super.initState();
 
-    List<dynamic> values = [
-      {'date': '2021 Jan', 'paul': true, 'tanush': false, 'adarsh': true},
-      {'date': '2021 Feb', 'paul': false, 'tanush': true, 'adarsh': false}
-    ];
+    // List<dynamic> values = [
+    //   {'date': '2021 Jan', 'paul': true, 'tanush': false, 'adarsh': true},
+    //   {'date': '2021 Feb', 'paul': false, 'tanush': true, 'adarsh': false}
+    // ];
 
     // _db = values;
 
@@ -83,6 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _db[i][name] = !_db[i][name];
         });
+        break;
       }
     }
 
@@ -93,11 +81,49 @@ class _MyHomePageState extends State<MyHomePage> {
     await prefs.setString('data', jsonEncode(_db));
   }
 
+  _handleNewEntry() async {
+    setState(() {
+      _db.add({
+        'date': dateController.text,
+        'paul': false,
+        'tanush': false,
+        'adarsh': false
+      });
+    });
+
+    dateController.clear();
+
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Fill in date'),
+                content: TextField(
+                  controller: dateController,
+                ),
+                actions: [
+                  TextButton(
+                    child: const Text('OK'),
+                    onPressed: _handleNewEntry,
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        tooltip: 'New Entry',
+        child: const Icon(Icons.add),
       ),
       body: ListView(
         children: _db.isEmpty
@@ -117,12 +143,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 //   ),
                 // ),
                 DataTable(
-                    // columnSpacing: 20,
+                    columnSpacing: 20,
                     columns: const [
                       DataColumn(
                           label: Text('Date',
                               style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold))),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green))),
                       DataColumn(
                           label: Text('Paul',
                               style: TextStyle(
@@ -135,6 +163,12 @@ class _MyHomePageState extends State<MyHomePage> {
                           label: Text('Adarsh',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold))),
+                      DataColumn(
+                          label: Text('Edit',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red))),
                     ],
                     rows: _db
                         .map((r) => DataRow(cells: [
@@ -163,6 +197,48 @@ class _MyHomePageState extends State<MyHomePage> {
                                   },
                                 ),
                               ),
+                              DataCell(TextButton(
+                                  child: const Text('Delete'),
+                                  onPressed: () async {
+                                    await showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: const Text(
+                                              'Are you sure you want to delete this row?'),
+                                          content: Text(r['date']),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () async {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: const Text('No'),
+                                            ),
+                                            TextButton(
+                                              child: const Text('Yes'),
+                                              onPressed: () async {
+                                                int index = 0;
+                                                for (int i = 0;
+                                                    i < _db.length;
+                                                    i++) {
+                                                  if (_db[i]['date'] ==
+                                                      r['date']) {
+                                                    index = i;
+                                                    break;
+                                                  }
+                                                }
+                                                setState(() {
+                                                  _db.removeAt(index);
+                                                });
+
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  }))
                             ]))
                         .toList()
                     // rows: const [
@@ -173,29 +249,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     //     DataCell(Text('Actor')),
                     //     DataCell(Text('Actor')),
                     //   ]),
-                    //   DataRow(cells: [
-                    //     DataCell(Text('Feb')),
-                    //     DataCell(Text('John')),
-                    //     DataCell(Text('Student')),
-                    //     DataCell(Text('Actor')),
-                    //     DataCell(Text('Actor')),
-                    //   ]),
-                    //   DataRow(cells: [
-                    //     DataCell(Text('March')),
-                    //     DataCell(Text('Harry')),
-                    //     DataCell(Text('Leader')),
-                    //     DataCell(Text('Actor')),
-                    //     DataCell(Text('Actor')),
-                    //   ]),
-                    //   DataRow(
-                    //     cells: [
-                    //       DataCell(Text('April')),
-                    //       DataCell(Text('Peter')),
-                    //       DataCell(Text('Scientist')),
-                    //       DataCell(Text('Actor')),
-                    //       DataCell(Text('Actor')),
-                    //     ],
-                    //   ),
                     // ],
                     ),
               ]),
